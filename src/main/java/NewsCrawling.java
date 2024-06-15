@@ -3,25 +3,34 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.ArrayDeque;
+import java.util.Deque;
 
 public class NewsCrawling {
 
-    String url = "https://news.naver.com/section/101";
+    private String url = "https://news.naver.com/section/101";
 
-    public List<String> getCrawling() throws IOException {
-        List<String> titleList = new ArrayList<>();
+    public Deque<NewsDto> getCrawling() throws IOException {
+        Deque<NewsDto> deque = new ArrayDeque<>();
         Document doc = Jsoup.connect(url).get();
-        for (Element element : doc.select("li.sa_item._LAZY_LOADING_WRAP")) {
-            titleList.add(element.select("strong.sa_text_strong").text());
+
+        for (Element element : doc.select("a.sa_text_title")) {
+            deque.add(NewsDto.builder()
+                    .link(element.select("a[href]").attr("href"))
+                    .title(element.select("strong.sa_text_strong").text())
+                    .build());
         }
-        return titleList;
+        return deque;
     }
 
     public static void main(String[] args) throws IOException {
         NewsCrawling newsCrawling = new NewsCrawling();
-        List<String> list = newsCrawling.getCrawling();
-        list.forEach(System.out::println);
+        Deque<NewsDto> crawling = newsCrawling.getCrawling();
+
+        while (!crawling.isEmpty()) {
+            NewsDto news = crawling.pop();
+            System.out.println(news.getTitle() + "\n" + news.getLink());
+            break;
+        }
     }
 }

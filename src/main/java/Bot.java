@@ -7,10 +7,13 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
+import java.io.IOException;
+import java.util.Deque;
+
 public class Bot extends TelegramLongPollingBot {
 
-    private static final String TOKEN = "put your telegram token";
-    private static final String USERNAME = "put you username";
+    private static final String TOKEN = "put your token";
+    private static final String USERNAME = "put your username";
 
     @Override
     public String getBotToken() {
@@ -42,13 +45,15 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
-    public static void main(String[] args) throws TelegramApiException {
+    public static void main(String[] args) throws TelegramApiException, IOException {
         TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
         Bot bot = new Bot();
         botsApi.registerBot(bot);
 
-        bot.sendText("put your id", "내가 적은 내용이 텔레그램으로 내용이 보내짐");
+        Deque<NewsDto> newsList = new NewsCrawling().getCrawling();
+        while (!newsList.isEmpty()) {
+            NewsDto news = newsList.pop();
+            bot.sendText("put your id", news.getTitle()+"\n"+news.getLink());
+        }
     }
-
-
 }
