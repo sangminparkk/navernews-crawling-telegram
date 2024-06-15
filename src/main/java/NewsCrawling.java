@@ -8,8 +8,10 @@ import java.util.Deque;
 
 public class NewsCrawling {
 
+    //TODO : section별 url 관리 필요
     private String url = "https://news.naver.com/section/101";
 
+    //TODO : 선택적 크롤링 (내가 원하는 키워드가 들어간 뉴스만 크롤링)
     public Deque<NewsDto> getCrawling() throws IOException {
         Deque<NewsDto> deque = new ArrayDeque<>();
         Document doc = Jsoup.connect(url).get();
