@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Deque;
 
 public class Bot extends TelegramLongPollingBot {
+    //TODO : 실행시간대 OR 실행/종료 조건 추가 (.exe파일로 프로그램 운영되게 할수있나)
 
     private static final String TOKEN = "put your token";
     private static final String USERNAME = "put your username";
