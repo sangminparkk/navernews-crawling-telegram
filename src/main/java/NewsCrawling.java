@@ -4,17 +4,14 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class NewsCrawling {
 
     private final String URL = "https://news.naver.com";
     private Map<String, String> mapUrl = new HashMap<>();
+    private List<String> keywords = Arrays.asList("삼성", "SK", "현대", "LG", "기아", "비만", "GLP", "감염", "대왕고래", "전력", "AI"); // 선택적 크롤링
 
-    //TODO : 선택적 크롤링 (내가 원하는 키워드가 들어간 뉴스만 크롤링)
     public void getSessionUrl() throws IOException {
         Document doc = Jsoup.connect(URL).get();
         Elements elements = doc.select("li.Nlist_item");
@@ -42,19 +39,26 @@ public class NewsCrawling {
             }
 
             for (Element element : newsElements) {
-                deque.add(NewsDto.builder()
-                        .link(element.select("a[href]").attr("href"))
-                        .title(element.select("strong.sa_text_strong").text())
-                        .category(category)
-                        .build());
+                String title = element.select("strong.sa_text_strong").text();
+                String link = element.select("a[href]").attr("href");
+                boolean containsKeyword = keywords.stream().anyMatch(title::contains);
+
+                if (containsKeyword) {
+                    deque.add(NewsDto.builder()
+                            .link(link)
+                            .title(title)
+                            .category(category)
+                            .build());
+                }
             }
         }
+
         return deque;
     }
 
     public static void main(String[] args) throws IOException {
         NewsCrawling crawling3 = new NewsCrawling();
-        Deque<NewsDto> deque = crawling3.getNews(new String[]{"IT/과학", "세계"}); // {"정치", "경제", "IT/과학", "세계"}
+        Deque<NewsDto> deque = crawling3.getNews(new String[]{"정치", "경제", "IT/과학", "세계", "사회"});
         while (!deque.isEmpty()) {
             NewsDto pop = deque.pop();
             System.out.println("["+pop.getCategory()+"]"+ pop.getTitle() + " " + pop.getLink());
