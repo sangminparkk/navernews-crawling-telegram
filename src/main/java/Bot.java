@@ -9,12 +9,20 @@ import org.telegram.telegrambots.updatesreceivers.DefaultBotSession;
 
 import java.io.IOException;
 import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Bot extends TelegramLongPollingBot {
     //TODO : 실행시간대 OR 실행/종료 조건 추가 (.exe파일로 프로그램 운영되게 할수있나)
 
-    private static final String TOKEN = "put your token";
-    private static final String USERNAME = "put your username";
+    private static final String TOKEN = "";
+    private static final String USERNAME = "";
+    private static final String CHAT_ID = "";
+
+    private final Set<String> sentNewsLists = new HashSet<>();
 
     @Override
     public String getBotToken() {
@@ -46,14 +54,35 @@ public class Bot extends TelegramLongPollingBot {
         }
     }
 
+
+
+
+
     public static void main(String[] args) throws TelegramApiException, IOException {
         TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
         Bot bot = new Bot();
         botsApi.registerBot(bot);
-        Deque<NewsDto> newsList = new NewsCrawling().getNews(new String[]{"IT/과학", "세계"}); // session 추가 가능
-        while (!newsList.isEmpty()) {
-            NewsDto news = newsList.pop();
-            bot.sendText("put your id", "["+news.getCategory()+"]"+news.getTitle()+"\n"+news.getLink());
-        }
+
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+
+        Runnable task = () -> {
+            Deque<NewsDto> newsList = null; // session 추가 가능
+            try {
+                newsList = new NewsCrawling().getNews(new String[]{"경제", "세계"});
+
+                while (!newsList.isEmpty()) {
+                    NewsDto news = newsList.pop();
+                    if (!bot.sentNewsLists.contains(news.getLink())) {
+                        bot.sendText(CHAT_ID, "["+news.getCategory()+"]"+news.getTitle()+"\n"+news.getLink());
+                        bot.sentNewsLists.add(news.getLink());
+                    }
+                }
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        };
+
+        executor.scheduleAtFixedRate(task, 0, 1, TimeUnit.SECONDS);
     }
 }
