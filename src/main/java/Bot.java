@@ -50,11 +50,10 @@ public class Bot extends TelegramLongPollingBot {
         TelegramBotsApi botsApi = new TelegramBotsApi(DefaultBotSession.class);
         Bot bot = new Bot();
         botsApi.registerBot(bot);
-
-        Deque<NewsDto> newsList = new NewsCrawling().getCrawling();
+        Deque<NewsDto> newsList = new NewsCrawling().getNews(new String[]{"IT/과학", "세계"}); // session 추가 가능
         while (!newsList.isEmpty()) {
             NewsDto news = newsList.pop();
-            bot.sendText("put your id", news.getTitle()+"\n"+news.getLink());
+            bot.sendText("put your id", "["+news.getCategory()+"]"+news.getTitle()+"\n"+news.getLink());
         }
     }
 }
