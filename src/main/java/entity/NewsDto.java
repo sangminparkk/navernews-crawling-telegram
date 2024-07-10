@@ -1,3 +1,5 @@
+package entity;
+
 import lombok.Builder;
 import lombok.Getter;
 
@@ -6,13 +8,13 @@ public class NewsDto {
 
     private String link;
     private String title;
-    private String category;
 
+    public NewsDto() {
+    }
 
     @Builder
-    public NewsDto(String link, String title, String category) {
+    public NewsDto(String link, String title) {
         this.link = link;
         this.title = title;
-        this.category = category;
     }
 }
