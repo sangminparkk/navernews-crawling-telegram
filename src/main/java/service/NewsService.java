@@ -7,15 +7,30 @@ import repository.NewsRepository;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class NewsService {
 
     private NewsCrawler newsCrawler;
     private NewsRepository newsRepository;
+    private ScheduledExecutorService scheduler;
 
     public NewsService(NewsCrawler newsCrawler, NewsRepository newsRepository) {
         this.newsCrawler = newsCrawler;
         this.newsRepository = newsRepository;
+        this.scheduler = Executors.newScheduledThreadPool(1);
+        startScheduler();
+    }
+
+    private void startScheduler() {
+        Runnable task = this::sendNews;
+        this.scheduler.scheduleAtFixedRate(task, 0, 1000L * 10, TimeUnit.MILLISECONDS);
+    }
+
+    private void stopScheduler() {
+        scheduler.shutdown();
     }
 
     public List<NewsDto> sendNews() {
@@ -34,4 +49,6 @@ public class NewsService {
         }
         return newsList;
     }
+
+
 }
