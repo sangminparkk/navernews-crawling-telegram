@@ -26,7 +26,7 @@ public class NewsService {
 
     private void startScheduler() {
         Runnable task = this::sendNews;
-        this.scheduler.scheduleAtFixedRate(task, 0, 1000L * 10, TimeUnit.MILLISECONDS);
+        this.scheduler.scheduleAtFixedRate(task, 0, 10, TimeUnit.SECONDS);
     }
 
     private void stopScheduler() {

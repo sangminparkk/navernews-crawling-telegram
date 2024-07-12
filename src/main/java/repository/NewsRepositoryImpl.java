@@ -19,6 +19,17 @@ public class NewsRepositoryImpl implements NewsRepository {
     }
 
     @Override
+    public void clearNews() {
+        String sql = "Delete from news";
+        try (Connection conn = databaseManager.getConnect();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+                ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void saveNews(NewsDto newsDto) {
         String query = "INSERT INTO news (title, link) values (?,?)";
         //TODO : 중복체크가 없음. 중복없이 계속 때려넣으면 리소스낭비
@@ -56,7 +67,6 @@ public class NewsRepositoryImpl implements NewsRepository {
     @Override
     public NewsDto getNewsByLink(String link) {
         String query = "SELECT * FROM news where link = ?";
-        NewsDto newsDto = new NewsDto();
         try (Connection conn = databaseManager.getConnect();
              PreparedStatement ps = conn.prepareStatement(query)) {
              ps.setString(1, link);

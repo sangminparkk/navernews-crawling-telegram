@@ -11,4 +11,6 @@ public interface NewsRepository {
     List<NewsDto> getAllNews();
 
     NewsDto getNewsByLink(String link);
+
+    void clearNews();
 }
