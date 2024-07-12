@@ -1,24 +1,28 @@
 package service;
 
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
+import lombok.Getter;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
 
-import java.io.IOException;
+import java.util.List;
 
+@Getter
 public class NewsCrawler {
-    public Elements fetchNews() {
+
+    private WebDriver webDriver;
+
+    public NewsCrawler() {
+        this.webDriver = new ChromeDriver();
+    }
+
+    public List<WebElement> fetchNews() {
         //TODO 세션별 관리 필요
         String url = "https://news.naver.com/section/101"; // 경제 세션
-        Connection connect = Jsoup.connect(url);
+        this.webDriver.get(url); // 굳이 열어야하나?
 
-        try {
-            Document document = connect.get();
-            return document.select("div.section_article._TEMPLATE li");
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return this.webDriver.findElements(By.cssSelector("div.section_article._TEMPLATE li"));
     }
 
 }
