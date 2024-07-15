@@ -1,5 +1,6 @@
 package service;
 
+import controller.TelegramBot;
 import entity.NewsDto;
 import lombok.extern.slf4j.Slf4j;
 import org.openqa.selenium.By;
@@ -19,14 +20,24 @@ import java.util.concurrent.TimeUnit;
 @Slf4j
 public class NewsService {
 
+    private static NewsService instance;
     private NewsCrawler newsCrawler;
     private NewsRepository newsRepository;
     private ScheduledExecutorService scheduler;
+    private TelegramBot telegramBot;
+
+    public static synchronized NewsService getInstance(NewsCrawler newsCrawler, NewsRepository newsRepository) {
+        if (instance == null) {
+            instance = new NewsService(newsCrawler, newsRepository);
+        }
+        return instance;
+    }
 
     public NewsService(NewsCrawler newsCrawler, NewsRepository newsRepository) {
         this.newsCrawler = newsCrawler;
         this.newsRepository = newsRepository;
         this.scheduler = Executors.newScheduledThreadPool(1);
+        this.telegramBot = new TelegramBot();
         startScheduler();
     }
 
@@ -63,14 +74,19 @@ public class NewsService {
         List<WebElement> articles = this.newsCrawler.fetchNews();
 
         for (WebElement article : articles) {
-            String title = article.findElement(By.cssSelector("strong.sa_text_strong")).getText();
-            String link = article.findElement(By.cssSelector("a")).getAttribute("href");
-            NewsDto newsDto = new NewsDto(title, link);
+            try {
+                String title = article.findElement(By.cssSelector("strong.sa_text_strong")).getText();
+                String link = article.findElement(By.cssSelector("a")).getAttribute("href");
+                NewsDto newsDto = new NewsDto(title, link);
 
-            if (newsRepository.getNewsByLink(link) == null){
-                newsRepository.saveNews(newsDto);
+                if (newsRepository.getNewsByLink(link) == null) {
+                    newsRepository.saveNews(newsDto);
+                }
+                newsList.add(newsDto);
+                this.telegramBot.sendText(newsDto);
+            } catch (Exception e) {
+                log.error("sendNews 처리 중 에러 발생 : " +  e.getMessage());
             }
-            newsList.add(newsDto);
         }
         log.info("sendNews 메소드 종료 >>>> ");
 
