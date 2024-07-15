@@ -2,6 +2,7 @@ package repository;
 
 import AppConfig.DatabaseManager;
 import entity.NewsDto;
+import lombok.extern.slf4j.Slf4j;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+@Slf4j
 public class NewsRepositoryImpl implements NewsRepository {
 
     private DatabaseManager databaseManager;
@@ -31,10 +33,23 @@ public class NewsRepositoryImpl implements NewsRepository {
 
     @Override
     public void saveNews(NewsDto newsDto) {
-        String query = "INSERT INTO news (title, link) values (?,?)";
-        //TODO : 중복체크가 없음. 중복없이 계속 때려넣으면 리소스낭비
+        String checkQuery = "Select count(*) from news where title = ?";
+        String insertQuery = "INSERT INTO news (title, link) values (?,?)";
+
         try (Connection conn = databaseManager.getConnect();
-             PreparedStatement ps = conn.prepareStatement(query)) {
+             PreparedStatement ps = conn.prepareStatement(insertQuery);
+             PreparedStatement checkStmt = conn.prepareStatement(checkQuery)) {
+
+            // 중복체크
+            checkStmt.setString(1, newsDto.getTitle());
+            try (ResultSet rs = checkStmt.executeQuery()) {
+                if (rs.next() && rs.getInt(1) > 0) {
+                    log.info("중복 타이틀 발견 " + newsDto.getTitle());
+//                    log.debug("title : " + newsDto.getTitle() + " link : " + newsDto.getLink()); // Builder사용과 연관 있는건가?
+                    return;
+                }
+            }
+
             ps.setString(1, newsDto.getTitle());
             ps.setString(2, newsDto.getLink());
             ps.executeUpdate();
@@ -65,15 +80,15 @@ public class NewsRepositoryImpl implements NewsRepository {
     }
 
     @Override
-    public NewsDto getNewsByLink(String link) {
-        String query = "SELECT * FROM news where link = ?";
+    public NewsDto getNewsByTitle(String title) {
+        String query = "SELECT * FROM news where title = ?";
         try (Connection conn = databaseManager.getConnect();
              PreparedStatement ps = conn.prepareStatement(query)) {
-             ps.setString(1, link);
+             ps.setString(1, title);
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     return NewsDto.builder()
-                            .link(rs.getString("link"))
+                            .link(rs.getString("title"))
                             .build();
                 }
             }

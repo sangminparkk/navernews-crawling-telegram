@@ -10,7 +10,7 @@ public interface NewsRepository {
 
     List<NewsDto> getAllNews();
 
-    NewsDto getNewsByLink(String link);
+    NewsDto getNewsByTitle(String title);
 
     void clearNews();
 }

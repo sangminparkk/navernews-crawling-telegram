@@ -74,18 +74,24 @@ public class NewsService {
         List<WebElement> articles = this.newsCrawler.fetchNews();
 
         for (WebElement article : articles) {
+            NewsDto newsDto = null;
             try {
                 String title = article.findElement(By.cssSelector("strong.sa_text_strong")).getText();
                 String link = article.findElement(By.cssSelector("a")).getAttribute("href");
-                NewsDto newsDto = new NewsDto(title, link);
+                newsDto = NewsDto.builder()
+                        .title(title)
+                        .link(link)
+                        .build();
 
-                if (newsRepository.getNewsByLink(link) == null) {
+                if (newsRepository.getNewsByTitle(title) == null) {
                     newsRepository.saveNews(newsDto);
+                    newsList.add(newsDto);
+                    this.telegramBot.sendText(newsDto);
                 }
-                newsList.add(newsDto);
-                this.telegramBot.sendText(newsDto);
+
             } catch (Exception e) {
                 log.error("sendNews 처리 중 에러 발생 : " +  e.getMessage());
+                log.info("title : " + newsDto.getTitle() + " link : " + newsDto.getLink());
             }
         }
         log.info("sendNews 메소드 종료 >>>> ");

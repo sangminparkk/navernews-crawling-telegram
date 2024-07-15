@@ -9,12 +9,9 @@ public class NewsDto {
     private String link;
     private String title;
 
-    public NewsDto() {
-    }
-
     @Builder
-    public NewsDto(String link, String title) {
-        this.link = link;
+    public NewsDto(String title, String link) {
         this.title = title;
+        this.link = link;
     }
 }
